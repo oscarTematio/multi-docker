@@ -1,0 +1,23 @@
+sudo: required 
+services:
+  - docker
+
+before_install: 
+  - docker build -t oscartematio/react-test -f ./client/Dockerfile.dev ./client
+
+script: 
+  - docker run -e CI=true oscartematio/react-test  npm test
+
+after_success:
+  - docker build -t oscartematio/multi-client   ./client
+  - docker build -t oscartematio/multi-nginx ./nginx
+  - docker build -t oscartematio/multi-server ./server
+  - docker build -t oscartematio/multi-worker ./worker
+  #docker log in to dockre hub 
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin 
+  # push all thos image to the docker hub
+  - docker push oscartematio/multi-client
+  - docker push oscartematio/multi-nginx
+  - docker push oscartematio/multi-server
+  - docker push oscartematio/multi-worker
+
